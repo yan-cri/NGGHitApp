@@ -1,1 +1,3 @@
 # NGGHitApp
+
+TEST for connection.
