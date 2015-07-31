@@ -1,7 +1,5 @@
 ## This App is developed by Yan Li for requested project (CRI-BIO-300), last update on August, 2015
-library(BSgenome.Hsapiens.UCSC.hg19)
-library(BSgenome.Mmusculus.UCSC.mm10)
-library(ggplot2)
+
 hg19genome <- BSgenome.Hsapiens.UCSC.hg19
 mm10genome <- BSgenome.Mmusculus.UCSC.mm10
 
@@ -33,11 +31,18 @@ shinyServer(function(input, output, session) {
   })
   
   output$genomeAndChrInfo <- renderText({
-    paste("The NGG search is on the ", as.character(input$chr), " of ", as.character(input$genome), " genome.", sep="")
+    input$submit
+    isolate({
+      if (is.null(input$chr) | is.null(input$genome)) return()
+      else paste("The NGG search is on the ", as.character(input$chr), " of ", as.character(input$genome), " genome.", sep="")
+    })    
   })
   
   
   HitAllRes <- reactive({
+    print("****")
+    print(input$chr)
+    print("****")
     seq <- input$seq
     seqAGG <- paste(input$seq, "AGG", sep="")
     seqTGG <- paste(input$seq, "TGG", sep="")
@@ -48,86 +53,189 @@ shinyServer(function(input, output, session) {
     #if(is.null(input$genome)) return("hg19")
     #if(is.null(input$chr)) return("all")
     print(input$genome)
-    print(as.numeric(input$mismatchNo))
+    print(paste ("search on " , input$chr, sep="") )
+    print(paste("mismatch is chosen with " , as.numeric(input$mismatchNo), sep=""))
     print("*********")
-    if(input$genome == "hg19") {
-      finalRes <- data.frame(A= numeric(0), B= numeric(0), C= numeric(0))
-      countRes <- data.frame(A= numeric(0), B= numeric(0))
-      count <- 0 
-      for (i in 1:2) {
-        seqHitNo <- 0
-        for (j in 1:length(seqNGG)){
-          seq <- seqNGG[j]
-          seqnames <- seqnames(hg19genome)          
-          chrName <- seqnames[i]
-          subject <- hg19genome[[chrName]]
-          res <- matchPattern(seq, subject, max.mismatch=as.numeric(input$mismatchNo) )
-          seqHitNoUpdat <- length(res@ranges@start)
-          seqHitNo <- seqHitNo + seqHitNoUpdat
-          print(seqHitNoUpdat)
-          count <- count + 1
-          print(count)         
-          chrRes <- data.frame(chr=rep(chrName,length(res@ranges@start)), start=res@ranges@start, end= (res@ranges@start+res@ranges@width))
-          finalRes <- rbind(finalRes, chrRes)          
-        }
-        print(seqHitNo)
-        countResSep <- data.frame(chr=chrName, hitno=seqHitNo)
-        countRes <- rbind(countRes, countResSep)
-      }
-      HitCombRes <- list(finalRes = finalRes, countRes=countRes)
-      
-    } else if (input$genome == "mm10") {
-      
-      finalRes <- data.frame(A= numeric(0), B= numeric(0), C= numeric(0))
-      countRes <- data.frame(A= numeric(0), B= numeric(0))
-      
-      for (i in 1:4) {
-        seqHitNo <- 0
-        for (j in 1:length(seqNGG)) {
-          seq <- seqNGG[j]
-          seqnames <- seqnames(mm10genome)
-          
-          chrName <- seqnames[i]
-          subject <- hg19genome[[chrName]]
-          res <- matchPattern(seq, subject, max.mismatch=as.numeric(input$mismatchNo) )
-          seqHitNoUpdat <- length(res@ranges@start)
-          seqHitNo <- seqHitNo + seqHitNoUpdat
-          print(seqHitNoUpdat)         
-          
-          chrRes <- data.frame(chr=rep(chrName,length(res@ranges@start)), start=res@ranges@start, end= (res@ranges@start+res@ranges@width))
-          finalRes <- rbind(finalRes, chrRes)          
-        }
-        print(seqHitNo)
-        countResSep <- data.frame(chr=chrName, hitno=seqHitNo)
-        countRes <- rbind(countRes, countResSep)
-      }        
-      
-      HitCombRes <- list(finalRes = finalRes, countRes=countRes)
-      
-    } else if (is.null(input$genome)) {
-      HitCombRes <- list(finalRes = NULL, countRes = NULL)
-    }
     
+    withProgress(message = 'Processing ', value = 0, { 
+            
+      if(input$genome == "hg19") {
+        finalRes <- data.frame(A= numeric(0), B= numeric(0), C= numeric(0))
+        countRes <- data.frame(A= numeric(0), B= numeric(0))
+        
+        if(input$chr == "All") {
+          # Number of times we'll go through the loop
+          n <- 25              
+          for (i in 1:25) {          
+            
+            seqHitNo <- 0          
+            seqnames <- seqnames(hg19genome)          
+            chrName <- seqnames[i]
+            print(paste("Searching on chromosome ", chrName, sep=""))
+            subject <- hg19genome[[chrName]]
+            
+            # Increment the progress bar, and update the detail text.
+            incProgress(1/n, detail = paste(i*100/n, "%", paste(" searching on ", chrName, sep=""), sep="") ) 
+            
+            # Pause for 0.1 seconds to simulate a long computation.
+            Sys.sleep(0.1)
+            ###########
+            for (j in 1:length(seqNGG)){
+              seq <- seqNGG[j]
+              res <- matchPattern(seq, subject, max.mismatch=as.numeric(input$mismatchNo) )
+              seqHitNoUpdat <- length(res@ranges@start)
+              seqHitNo <- seqHitNo + seqHitNoUpdat
+              print(paste("hit number is" , seqHitNoUpdat, sep=" "))               
+              chrRes <- data.frame(chr=rep(chrName,length(res@ranges@start)), start=res@ranges@start, end= (res@ranges@start+res@ranges@width))
+              finalRes <- rbind(finalRes, chrRes)          
+            }
+            print(seqHitNo)
+            print("*******")
+            countResSep <- data.frame(chr=chrName, hitno=seqHitNo)
+            countRes <- rbind(countRes, countResSep)
+          }
+          HitCombRes <- list(finalRes = finalRes, countRes=countRes)
+        } else {
+          n<-4
+          seqHitNo <- 0          
+          seqnames <- seqnames(hg19genome)          
+          chrName <- input$chr
+          print(paste("Searching on chromosome ", chrName, sep=""))
+          subject <- hg19genome[[chrName]]
+          
+          for (j in 1:length(seqNGG)){
+            # Increment the progress bar, and update the detail text.
+            incProgress(1/n, detail = paste(j*100/n, "%", paste(" searching on ", chrName, sep=""), sep="") )         
+            # Pause for 0.1 seconds to simulate a long computation.
+            Sys.sleep(0.1)
+            ###########
+            seq <- seqNGG[j]
+            res <- matchPattern(seq, subject, max.mismatch=as.numeric(input$mismatchNo) )
+            seqHitNoUpdat <- length(res@ranges@start)
+            seqHitNo <- seqHitNo + seqHitNoUpdat
+            print(paste("hit number is" , seqHitNoUpdat, sep=" "))               
+            chrRes <- data.frame(chr=rep(chrName,length(res@ranges@start)), start=res@ranges@start, end= (res@ranges@start+res@ranges@width))
+            finalRes <- rbind(finalRes, chrRes) 
+            
+          }
+          countResSep <- data.frame(chr=chrName, hitno=seqHitNo)
+          countRes <- rbind(countRes, countResSep)
+          
+          HitCombRes <- list(finalRes = finalRes, countRes=countRes)
+        }        
+        
+        HitCombRes <- list(finalRes = finalRes, countRes=countRes)
+        
+      } else if (input$genome == "mm10") {
+        
+        finalRes <- data.frame(A= numeric(0), B= numeric(0), C= numeric(0))
+        countRes <- data.frame(A= numeric(0), B= numeric(0))
+        
+        if(input$chr == "All") {
+          # Number of times we'll go through the loop
+          n <- 22              
+          for (i in 1:22) {          
+            
+            seqHitNo <- 0          
+            seqnames <- seqnames(mm10genome)          
+            chrName <- seqnames[i]
+            print(paste("Searching on chromosome ", chrName, sep=""))
+            subject <- mm10genome[[chrName]]
+            ###########
+            # Increment the progress bar, and update the detail text.
+            incProgress(1/n, detail = paste(as.integer(i*100/n), "%", paste(" searching on ", chrName, sep=""), sep="") ) 
+            
+            # Pause for 0.1 seconds to simulate a long computation.
+            Sys.sleep(0.1)
+            ###########
+            for (j in 1:length(seqNGG)){
+              seq <- seqNGG[j]
+              res <- matchPattern(seq, subject, max.mismatch=as.numeric(input$mismatchNo) )
+              seqHitNoUpdat <- length(res@ranges@start)
+              seqHitNo <- seqHitNo + seqHitNoUpdat
+              print(paste("hit number is" , seqHitNoUpdat, sep=" "))               
+              chrRes <- data.frame(chr=rep(chrName,length(res@ranges@start)), start=res@ranges@start, end= (res@ranges@start+res@ranges@width))
+              finalRes <- rbind(finalRes, chrRes)          
+            }
+            print(seqHitNo)
+            print("*******")
+            countResSep <- data.frame(chr=chrName, hitno=seqHitNo)
+            countRes <- rbind(countRes, countResSep)
+          }
+          HitCombRes <- list(finalRes = finalRes, countRes=countRes)
+        } else {
+          n<-4
+          seqHitNo <- 0          
+          seqnames <- seqnames(mm10genome)          
+          chrName <- input$chr
+          print(paste("Searching on chromosome ", chrName, sep=""))
+          subject <- mm10genome[[chrName]]
+          
+          for (j in 1:length(seqNGG)){
+            # Increment the progress bar, and update the detail text.
+            incProgress(1/n, detail = paste(j*100/n, "%", paste(" searching on ", chrName, sep=""), sep="") )         
+            # Pause for 0.1 seconds to simulate a long computation.
+            Sys.sleep(0.1)
+            ###########
+            seq <- seqNGG[j]
+            res <- matchPattern(seq, subject, max.mismatch=as.numeric(input$mismatchNo) )
+            seqHitNoUpdat <- length(res@ranges@start)
+            seqHitNo <- seqHitNo + seqHitNoUpdat
+            print(paste("hit number is" , seqHitNoUpdat, sep=" "))               
+            chrRes <- data.frame(chr=rep(chrName,length(res@ranges@start)), start=res@ranges@start, end= (res@ranges@start+res@ranges@width))
+            finalRes <- rbind(finalRes, chrRes) 
+            
+          }
+          countResSep <- data.frame(chr=chrName, hitno=seqHitNo)
+          countRes <- rbind(countRes, countResSep)
+          
+          HitCombRes <- list(finalRes = finalRes, countRes=countRes)
+        }        
+        
+        HitCombRes <- list(finalRes = finalRes, countRes=countRes)
+        
+      } else if (is.null(input$genome)) {
+        HitCombRes <- list(finalRes = NULL, countRes = NULL)
+      }
+      
+      })    
+    print(HitCombRes)
   })
   
   output$tabRes <- DT::renderDataTable({
-    input$submit | input$chrSubmit
+    input$submit
     isolate({
       if (is.null(input$genome)) return()
       HitAllRes()$finalRes
     })    
   })
   
+  output$resDownload <- downloadHandler(  
+    filename = function() {paste("NGG-Genome-Search-", Sys.Date(), ".txt", sep="")},
+    content = function(file) {write.table(HitAllRes()$finalRes, 
+                                          file, row.names=T, col.names=NA, quote=F, sep="\t"
+    )},
+    contentType = "text"
+  )
+  
   output$chrSummary <- renderTable({
-    input$submit | input$chrSubmit
+    input$submit 
     isolate({
       if (is.null(input$genome) | is.null(input$chr)) return()
       HitAllRes()$countRes
     })
   })
+   
+  output$countresDownload <- downloadHandler(  
+    filename = function() {paste("NGG-Genome-Search-CountSummary", Sys.Date(), ".txt", sep="")},
+    content = function(file) {write.table(HitAllRes()$countRes, 
+                                          file, row.names=T, col.names=NA, quote=F, sep="\t"
+    )},
+    contentType = "text"
+  )
   
   output$hitSearchPlot <- renderPlot({
-    input$submit | input$chrSubmit
+    input$submit 
     isolate({
       print("===")
       print(input$chr)
@@ -144,13 +252,14 @@ shinyServer(function(input, output, session) {
         g <- g + theme(axis.title.y=element_text(size=rel(3), vjust=1))
         g      
       } else {
-        dataChrHitRes <- subset(HitAllRes()$finalRes, chr==as.character(input$chr))
+        dataChrHitRes <- HitAllRes()$finalRes
         par(mar=c(5,5,2,2))
         hist(dataChrHitRes$start, breaks = 100, xlab = as.character(input$chr), main="", cex.axis=1.5, cex.lab=1.5)
         
       }
     })
   })
+  
   
 })
 

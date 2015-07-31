@@ -38,20 +38,16 @@ body <- dashboardBody(
            box(title = textOutput("genomeInfo"), 
                width = NULL, 
                solidHeader = T, status = "info",
-               uiOutput("genome_options"),
-               br(),
-               actionButton("chrSubmit", label="Submit")
+               uiOutput("genome_options")
                )
            
            ),
     
     
     column(width = 10,
-           box(title = "NGG sequence search Results",
+           box(title = textOutput("genomeAndChrInfo"),
                width = NULL, 
                solidHeader = T, status= "info",
-               textOutput("genomeAndChrInfo"),
-               br(),
                plotOutput("hitSearchPlot")               
                ),
            fluidRow(
@@ -69,7 +65,11 @@ body <- dashboardBody(
                  width = 6, 
                  solidHeader = T, status= "info",
                  collapsible = T, collapsed = F,
-                 tableOutput("chrSummary")
+                 tableOutput("chrSummary"),
+                 br(),
+                 downloadButton("countresDownload", 
+                                label = "Download",
+                                class = NULL)
                  
              )
              
