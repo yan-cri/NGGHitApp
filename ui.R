@@ -1,7 +1,5 @@
 ## This App is developed by Yan Li for requested project (CRI-BIO-300), last update on August, 2015
 
-
-
 header <- dashboardHeader(
   title = "NGG Genome Search"
 )
@@ -10,10 +8,10 @@ sidebar <- dashboardSidebar(
   h3("Sequence Data Input",
      style="padding-left: 0.5em"),
   textInput(inputId="seq", 
-            label = "Please provide your interested 20bp sequence here",
-            value = "GGGACTTTCCGGGACTTTCC"),
+            label = "Please provide your interested sequence here",
+            value = "AGGAGGAGGAGGAGGAGGAG"),
   br(),
-  h3("Genome Options",
+  h3("Genome Search Options",
      style="padding-left: 0.5em"),
   uiOutput("choose_genome"),
   
@@ -66,6 +64,8 @@ body <- dashboardBody(
                  solidHeader = T, status= "info",
                  collapsible = T, collapsed = F,
                  tableOutput("chrSummary"),
+                 tags$style("#chrSummary table {border: 1px solid black; align: center; margin: auto}","#chrSummary th {border: 1px solid black;}","#chrSummary td {border: 1px solid black;}"),
+                 
                  br(),
                  downloadButton("countresDownload", 
                                 label = "Download",
