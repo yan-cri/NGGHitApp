@@ -1,14 +1,14 @@
 ## This App is developed by Yan Li for requested project (CRI-BIO-300), last update on August, 2015
 
 header <- dashboardHeader(
-  title = "NGG Genome Search"
+  title = "NGG Genome Search" 
 )
 
 sidebar <- dashboardSidebar(
   h3("Sequence Data Input",
      style="padding-left: 0.5em"),
   textInput(inputId="seq", 
-            label = "Please provide your interested sequence here",
+            label = "Please provide input sequence here",
             value = "AGGAGGAGGAGGAGGAGGAG"),
   br(),
   h3("Genome Search Options",
@@ -17,7 +17,7 @@ sidebar <- dashboardSidebar(
   
   br(),
   radioButtons(inputId = "mismatchNo",
-               label = "Please choose the maximun number of mismatch allowed in the genome search",
+               label = "Please choose the maximun number of mismatch allowed in the search",
                choices = c("No mismatch" = "0", "1 mismatch" = "1",
                            "2 mismatch" = "2", "3 mismatch" = "3", "4 mismatch" = "4"),
                selected = "0"),
@@ -25,7 +25,15 @@ sidebar <- dashboardSidebar(
   br(),
   actionButton("submit", label="Submit"),
   tags$style("button#submit {margin-left: 1em; }")
-
+  #img(src="CRI_Logo_Text.png", style="padding-left:0.7em;margin-left:auto;margin-right:auto;display:block;position:absolute; bottom:1em;")
+  
+  #,br()
+  #,br()
+  #,br()
+  #,br()
+  #,helpText("Developed by bioinformatics core, Center for Research Informatics (CRI), University of Chicago", style="padding-left:1em; padding-right:1em")
+  ,helpText("Developed by bioinformatics core, Center for Research Informatics (CRI), University of Chicago", style="padding-left:1em; padding-right:1em;position:absolute; bottom:1em; ")
+  
   )
 
 body <- dashboardBody(

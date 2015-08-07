@@ -34,13 +34,13 @@ shinyServer(function(input, output, session) {
     input$submit
     isolate({
       if (is.null(input$chr) | is.null(input$genome)) return()
-      else paste("The NGG search is on the ", as.character(input$chr), " of ", as.character(input$genome), " genome.", sep="")
+      else paste("Search '", as.character(input$chr), "' on genome '", as.character(input$genome), "'",sep="")
     })    
   })
   
   
   HitAllRes <- reactive({
-    input$submit
+    if (input$submit)
     isolate({
       
       #print("****")
@@ -209,7 +209,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$tabRes <- DT::renderDataTable({
-    input$submit
+    if (input$submit)
     isolate({
       if (is.null(input$genome)) return()
       HitAllRes()$finalRes
@@ -231,7 +231,7 @@ shinyServer(function(input, output, session) {
   )
   
   output$chrSummary <- renderTable({
-    input$submit 
+    if (input$submit) 
     isolate({
       if (is.null(input$genome) | is.null(input$chr)) return()
       countSummary <- HitAllRes()$countRes
@@ -260,7 +260,7 @@ shinyServer(function(input, output, session) {
   )
   
   output$hitSearchPlot <- renderPlot({
-    input$submit 
+    if (input$submit) 
     isolate({
       #print("===")
       #print(input$chr)
