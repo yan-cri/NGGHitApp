@@ -1,6 +1,6 @@
 # NGGHitApp
 
-This App is developed to search the hit number and position of any length of input sequence followed with 3 extra flanking nucleotides (_NGG_) on selected genome (human (hg19) or mouse (mm10)).
+This App is developed to explore the hit number and position of any length of input sequence followed with 3 extra flanking nucleotides (_NGG_) searching on the selected genome (human (hg19) or mouse (mm10)).
 
 ##App execution
 To run this App after downloading this App from github to your local PC, please follow the steps as below:
