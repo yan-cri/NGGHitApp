@@ -11,7 +11,7 @@ To run this App after downloading this App from github to your local PC, please 
 
 3. Set your working directory to where this App are unzipped or downloaded. 
 
-    For example, I downloaded this App via 'Download ZIP' and unzipped it to the Desktop, then I need to set the working directory in R by `setwd("~/Desktop/NGGHitApp")`.
+    For example, I downloaded this App via 'Download ZIP' and unzipped it to the Desktop, then I need to set the working directory in R by `setwd("~/Desktop/NGGHitApp-master")`.
    
 4. Install all depended CRAN R packages and R Bioconductor packages by sourcing the R installation program with `source("install/prep.R")`. 
 
